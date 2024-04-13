@@ -1,0 +1,13 @@
+.dash-dropdown .Select-control {
+    background-color: rgb(25, 25, 25) !important;
+    color:white;
+  }
+  
+.dash-dropdown .Select-menu-outer {
+    background-color: rgb(25, 25, 25);
+    color: white;
+}
+
+.dash-dropdown .Select-value-label {
+    color: white !important;
+}

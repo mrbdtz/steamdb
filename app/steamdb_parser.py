@@ -1,8 +1,8 @@
 import csv
 import time
 import requests
-from scrapy.http import TextResponse
 from fake_useragent import UserAgent
+from bs4 import BeautifulSoup
 
 class SteamdbParser(object):
     def __init__(self):
@@ -14,41 +14,51 @@ class SteamdbParser(object):
         self.data_sellers = None
 
     def parse_data(self, url):
-        for i in range(5): #5 attempt to parse page
-            res = requests.get(url, headers={'User-Agent':UserAgent().chrome})
-            resp = TextResponse(body=res.content, url=url)
-            time.sleep(2)
+        res = requests.get(url, headers={'User-Agent':UserAgent().chrome})
+        time.sleep(2)
 
-            if res.status_code == 200:
-                apps_total = len(resp.css('tr.app').getall())
-                print('data received, total apps: {}'.format(apps_total))
-                return resp
-            else: 
-                print('status code: ',res.status_code)
-                time.sleep(8) # pause between atempts
-        print('cant get data, try later')
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, 'html.parser')
+            return soup, res.status_code
+        else: 
+            return None, res.status_code
 
     def get_charts_data(self):
-        resp = self.parse_data(self.url_charts)
-        headers = [h for h in resp.css('th::text').extract() if (h != '#' and h !=' ')]
-        all_data = [headers]
-
-        apps = resp.css('tr.app')
-        for app in apps:
-            all_data.append([x.replace(',','') for x in app.xpath('.//text()').extract() if (x !='\n' and x !='+')])
-        self.data_charts = all_data
+        soup, status_code = self.parse_data(self.url_charts)
+        if status_code == 200:
+            headers = ['Name', 'Current', '24h Peak', 'All-Time Peak']
+            all_data = [headers]
+            apps = soup.find_all("tr", {"class": "app"})
+            for app in apps:
+                name = app.find('a', href=True, string=True).text.strip()
+                values = [int(v.text.replace(',','')) for v in app.find_all('td', attrs={'data-sort':True})]
+                all_data.append([name] + values)
+            self.data_charts = all_data
+        else:
+            pass
+        return status_code
 
     def get_sellers_data(self):
-        resp = self.parse_data(self.url_sellers)
-        headers = [h for h in resp.css('th::text').extract() if h !=' ']
-        headers.insert(2,'last week')
+        soup, status_code  = self.parse_data(self.url_sellers)
+        if status_code == 200:
+            headers = ['Position', 'Name', 'Developer', 'Release date', 'Tags']
+            all_data = [headers]
 
-        all_data = [headers]
-
-        apps = resp.css('tr.app')
-        for app in apps:
-            all_data.append([x.replace('\n','') for x in app.xpath('.//text()').extract() if x !='\n'])
-        self.data_sellers= all_data
+            apps = soup.find_all("tr", {"class": "app"})
+            for app in apps:
+                position = app.find('td', class_='seller-pos').text.strip()
+                name = app.find('a', class_='b').text.strip()
+                developer = app.find('a', class_='b').parent.find_next_sibling().text.strip()
+                release_date = app.find('a', class_='b').parent.find_next_sibling().find_next_sibling().text.strip()
+                try:
+                    tags = ', '.join([t.text for t in app.find('a', class_='b').parent.find_all('span')])
+                except:
+                    tags = ''
+                all_data.append([position, name, developer, release_date, tags])
+            self.data_sellers= all_data
+        else:
+            pass
+        return status_code
 
     def save_to_csv(self, file_name):
         if file_name == self.file_charts:
@@ -59,21 +69,22 @@ class SteamdbParser(object):
             with open(file_name, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerows(all_data)
-            print('data saved to csv')
+            return 'data saved to csv'
         else:
-            print('no data to save')
+            return 'no data to save'
 
     def get_and_save_charts(self):
         try:
             self.get_charts_data()
-            self.save_to_csv(self.file_charts)
+            res_message = self.save_to_csv(self.file_charts)
+            return res_message
         except:
             pass
 
     def get_and_save_sellers(self):
         try:
             self.get_sellers_data()
-            self.save_to_csv(self.file_sellers)
+            res_message = self.save_to_csv(self.file_sellers)
+            return res_message
         except:
             pass
-
