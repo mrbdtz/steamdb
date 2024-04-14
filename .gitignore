@@ -4,4 +4,4 @@ __pycache__
 steamdb_parser_scrapy.py
 splash_scraper/
 .venv/
-.gin/
+.git/
