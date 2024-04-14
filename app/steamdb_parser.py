@@ -26,13 +26,16 @@ class SteamdbParser(object):
     def get_charts_data(self):
         soup, status_code = self.parse_data(self.url_charts)
         if status_code == 200:
-            headers = ['Name', 'Current', '24h Peak', 'All-Time Peak']
-            all_data = [headers]
+            headers = ['Position', 'Name', 'Current', '24h Peak', 'All-Time Peak']
+            all_data = []
             apps = soup.find_all("tr", {"class": "app"})
             for app in apps:
                 name = app.find('a', href=True, string=True).text.strip()
                 values = [int(v.text.replace(',','')) for v in app.find_all('td', attrs={'data-sort':True})]
-                all_data.append([name] + values)
+                all_data.append(['"'+name+'"'] + values)
+            all_data = sorted(all_data, key=lambda g: g[1], reverse=True)
+            all_data = [[i+1] + all_data[i] for i in range(len(all_data))]
+            all_data.insert(0, headers)
             self.data_charts = all_data
         else:
             pass
@@ -51,10 +54,10 @@ class SteamdbParser(object):
                 developer = app.find('a', class_='b').parent.find_next_sibling().text.strip()
                 release_date = app.find('a', class_='b').parent.find_next_sibling().find_next_sibling().text.strip()
                 try:
-                    tags = ', '.join([t.text for t in app.find('a', class_='b').parent.find_all('span')])
+                    tags = '; '.join([t.text for t in app.find('a', class_='b').parent.find_all('span')])
                 except:
                     tags = ''
-                all_data.append([position, name, developer, release_date, tags])
+                all_data.append([position, '"'+name+'"', '"'+developer+'"', release_date, tags])
             self.data_sellers= all_data
         else:
             pass
