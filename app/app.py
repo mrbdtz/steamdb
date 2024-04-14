@@ -3,8 +3,16 @@ import dash_bootstrap_components as dbc
 import os
 import time
 from steamdb_parser import SteamdbParser
+import dash_auth
+import config
+
+VALID_USERNAME_PASSWORD_PAIRS = {config.USERNAME: config.PASSWORD}
 
 app = Dash(__name__, external_stylesheets=[dbc.themes.SUPERHERO])
+
+
+auth = dash_auth.BasicAuth(app, VALID_USERNAME_PASSWORD_PAIRS)
+
 
 options = ['https://steamdb.info/charts/', 'https://steamdb.info/topsellers/']
 

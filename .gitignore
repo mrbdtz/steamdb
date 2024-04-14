@@ -1,5 +1,6 @@
 data/*
 steamdb.py
+config.py
 __pycache__
 steamdb_parser_scrapy.py
 splash_scraper
