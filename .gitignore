@@ -2,6 +2,6 @@ data/*
 steamdb.py
 __pycache__
 steamdb_parser_scrapy.py
-splash_scraper/
+splash_scraper
 .venv/
 .git/
