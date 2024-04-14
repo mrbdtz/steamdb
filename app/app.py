@@ -82,7 +82,6 @@ def parse_data(n_clicks, option):
         if option in ['https://steamdb.info/charts/', 'https://steamdb.info/topsellers/']:
             steamdb_parser = SteamdbParser()
             if option == 'https://steamdb.info/charts/':
-                print('parsing  charts data')
                 status_code = steamdb_parser.get_charts_data()
                 if status_code == 200:
                     total_apps = len(steamdb_parser.data_charts) - 1
@@ -95,7 +94,6 @@ def parse_data(n_clicks, option):
                     data_send = None
 
             if option == 'https://steamdb.info/topsellers/':
-                print('parsing  charts data')
                 status_code = steamdb_parser.get_sellers_data()
                 if status_code == 200:
                     total_apps = len(steamdb_parser.data_sellers) - 1

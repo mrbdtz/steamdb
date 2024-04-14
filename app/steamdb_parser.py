@@ -3,9 +3,11 @@ import time
 import requests
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
+from proxy_finder import ProxyFinder
 
 class SteamdbParser(object):
     def __init__(self):
+        self.proxy = ProxyFinder()
         self.url_charts = 'https://steamdb.info/charts/'
         self.url_sellers = 'https://steamdb.info/topsellers/'
         self.file_charts = 'data/charts.csv'
@@ -14,7 +16,7 @@ class SteamdbParser(object):
         self.data_sellers = None
 
     def parse_data(self, url):
-        res = requests.get(url, headers={'User-Agent':UserAgent().chrome})
+        res = requests.get(url, headers={'User-Agent':UserAgent().chrome}, proxies=self.proxy.active_proxy)
         time.sleep(2)
 
         if res.status_code == 200:
